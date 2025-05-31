@@ -1,10 +1,19 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, DollarSign, Users, User, Film, Tv } from 'lucide-react'
+import { Calendar, DollarSign, Users, User, Film, Tv, Edit3, Eye } from 'lucide-react'
 import { useOrdersContext } from '../context/OrdersContext'
+import { useReviewsContext } from '../context/ReviewsContext'
+import MovieReviewModal from '../components/ReviewModel'
+import OrderDetailsModal from '../components/OrderDetailsModal' // DODANO
 
 const ReviewMarketplace = () => {
-  const { orders, applyToOrder } = useOrdersContext()
+  const { orders } = useOrdersContext() // USUNIĘTO applyToOrder
+  const { hasUserReviewedOrder } = useReviewsContext()
+  
+  // Stan dla modali
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false) // DODANO
   
   const calculateDaysLeft = (deadline) => {
     const today = new Date()
@@ -21,12 +30,28 @@ const ReviewMarketplace = () => {
     return 'available'
   }
 
-  const handleApply = (orderId, currentReviewers, maxReviewers) => {
-    if (currentReviewers < maxReviewers) {
-      applyToOrder(orderId)
-      // Tutaj możesz dodać więcej logiki, np. modal z formularzem aplikacji
-      alert('Zgłoszenie zostało wysłane!')
-    }
+  // USUNIĘTO handleApply - nie potrzebujemy już aplikowania
+
+  // Funkcje obsługi modala recenzji
+  const openReviewModal = (order) => {
+    setSelectedOrder(order)
+    setIsReviewModalOpen(true)
+  }
+
+  const closeReviewModal = () => {
+    setSelectedOrder(null)
+    setIsReviewModalOpen(false)
+  }
+
+  // DODANO: Funkcje obsługi modala szczegółów
+  const openDetailsModal = (order) => {
+    setSelectedOrder(order)
+    setIsDetailsModalOpen(true)
+  }
+
+  const closeDetailsModal = () => {
+    setSelectedOrder(null)
+    setIsDetailsModalOpen(false)
   }
 
   // Sortuj zamówienia od najnowszych
@@ -126,22 +151,30 @@ const ReviewMarketplace = () => {
                     </div>
                     
                     <p className="marketplace-card-description">
-                      {order.description.substring(0, 100)}...
+                      {order.description && order.description.length > 100 
+                        ? `${order.description.substring(0, 100)}...` 
+                        : order.description || 'Brak opisu'
+                      }
                     </p>
                     
+                    {/* ZAKTUALIZOWANA SEKCJA PRZYCISKÓW - USUNIĘTO APLIKUJ */}
                     <div className="marketplace-card-actions">
                       <button 
                         className="btn-details"
-                        onClick={() => console.log('View details', order.id)}
+                        onClick={() => openDetailsModal(order)} // ZMIENIONO
+                        title="Zobacz pełne szczegóły zlecenia"
                       >
+                        <Eye size={14} />
                         Szczegóły
                       </button>
+                      
                       <button 
-                        className="btn-apply"
-                        disabled={order.currentReviewers >= order.maxReviewers}
-                        onClick={() => handleApply(order.id, order.currentReviewers, order.maxReviewers)}
+                        className="btn-review"
+                        onClick={() => openReviewModal(order)}
+                        title="Napisz recenzję dla tego filmu"
                       >
-                        {order.currentReviewers >= order.maxReviewers ? 'Brak miejsc' : 'Aplikuj'}
+                        <Edit3 size={14} />
+                        Napisz recenzję
                       </button>
                     </div>
                   </div>
@@ -150,6 +183,24 @@ const ReviewMarketplace = () => {
             })}
           </div>
         </>
+      )}
+
+      {/* MODAL DO PISANIA RECENZJI */}
+      {isReviewModalOpen && selectedOrder && (
+        <MovieReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={closeReviewModal}
+          orderData={selectedOrder}
+        />
+      )}
+
+      {/* DODANO: MODAL SZCZEGÓŁÓW ZLECENIA */}
+      {isDetailsModalOpen && selectedOrder && (
+        <OrderDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={closeDetailsModal}
+          orderData={selectedOrder}
+        />
       )}
     </div>
   )

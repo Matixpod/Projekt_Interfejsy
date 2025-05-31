@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Star, Clock, Calendar, Users, ArrowLeft } from 'lucide-react'
 import useMoviesData from '../hooks/useMoviesData'
 import useTVShowsData from '../hooks/useTVShowsData'
+import CommunityReviews from '../components/CommunityReviews' // DODANO
 
 const DetailPage = ({ type }) => {
   const { id } = useParams()
@@ -132,6 +133,12 @@ const DetailPage = ({ type }) => {
           </div>
         </div>
       </div>
+
+      {/* DODANO SEKCJĘ RECENZJI */}
+      <CommunityReviews 
+        movieId={item.id} 
+        movieTitle={item.title}
+      />
     </div>
   )
 }

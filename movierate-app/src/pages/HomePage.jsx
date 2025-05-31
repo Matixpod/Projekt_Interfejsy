@@ -1,13 +1,14 @@
-import Hero from '../components/Hero'
+import MovieSpotlight from '../components/MovieSpotlight'
 import TrendingSection from '../components/TrendingSection'
+import CommunityReviews from '../components/CommunityReviews'
 import AboutSection from '../components/AboutSection'
 import CategoriesSection from '../components/CategoriesSection'
 
 const HomePage = () => {
   return (
     <>
-      <Hero />
-      <TrendingSection />
+      <MovieSpotlight />
+      <CommunityReviews />
       <AboutSection />
       <CategoriesSection />
     </>
