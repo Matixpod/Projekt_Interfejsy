@@ -2,10 +2,12 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DollarSign, Film, User, AlertCircle, Image as ImageIcon } from 'lucide-react'
 import { useOrdersContext } from '../context/OrdersContext'
+import { useAuth } from '../context/AuthContext' // DODANO
 
 const OrderReviewPage = () => {
   const navigate = useNavigate()
   const { addOrder } = useOrdersContext()
+  const { user } = useAuth() // DODANO
 
   const [formData, setFormData] = useState({
     movieTitle: '',
@@ -16,9 +18,8 @@ const OrderReviewPage = () => {
     description: '',
     requirements: '',
     maxReviewers: '1',
-    authorName: '',
-    authorEmail: '',
-    paymentMethod: 'paypal'
+    authorName: user?.username || '', // DODANO: Auto-fill z user context
+    authorEmail: '' // USUNIĘTO: paymentMethod
   })
 
   const [errors, setErrors] = useState({})
@@ -56,7 +57,7 @@ const OrderReviewPage = () => {
       newErrors.description = 'Opis zlecenia jest wymagany'
     }
     if (!formData.authorName.trim()) {
-      newErrors.authorName = 'Imię jest wymagane'
+      newErrors.authorName = 'Nazwa użytkownika jest wymagana'
     }
     if (!formData.authorEmail.trim()) {
       newErrors.authorEmail = 'Email jest wymagany'
@@ -74,13 +75,17 @@ const OrderReviewPage = () => {
       return
     }
     setIsSubmitting(true)
+    
     const newOrder = {
       ...formData,
       price: parseFloat(formData.reviewPrice),
       maxReviewers: formData.maxReviewers === 'unlimited' ? 999 : parseInt(formData.maxReviewers),
       movieImage: formData.movieImage || `https://via.placeholder.com/250x350/d0d0d0/666?text=${encodeURIComponent(formData.movieTitle)}`
+      // USUNIĘTO: paymentMethod - recenzenci będą podawać swoje dane płatności
     }
+    
     addOrder(newOrder)
+    
     setTimeout(() => {
       setIsSubmitting(false)
       setShowSuccess(true)
@@ -97,18 +102,22 @@ const OrderReviewPage = () => {
         <p className="order-review-subtitle">
           Wypełnij formularz, aby zlecić napisanie recenzji filmu lub serialu
         </p>
+        
         {showSuccess && (
           <div className="success-message">
             <AlertCircle size={20} />
             Twoje zlecenie zostało dodane pomyślnie! Oczekuj na zgłoszenia recenzentów.
           </div>
         )}
+        
         <form onSubmit={handleSubmit} className="order-form">
+          {/* Sekcja informacji o filmie */}
           <div className="form-section">
             <h2 className="form-section-title">
               <Film size={20} />
               Informacje o filmie/serialu
             </h2>
+            
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="movieTitle">Tytuł filmu/serialu *</label>
@@ -123,6 +132,7 @@ const OrderReviewPage = () => {
                 />
                 {errors.movieTitle && <span className="error-text">{errors.movieTitle}</span>}
               </div>
+              
               <div className="form-group">
                 <label htmlFor="movieType">Typ</label>
                 <select
@@ -136,7 +146,7 @@ const OrderReviewPage = () => {
                 </select>
               </div>
             </div>
-            {/* Pole na link do plakatu */}
+            
             <div className="form-group">
               <label htmlFor="movieImage">
                 Link do plakatu (opcjonalnie)
@@ -156,10 +166,14 @@ const OrderReviewPage = () => {
                     src={formData.movieImage}
                     alt="Podgląd plakatu"
                     style={{ maxWidth: 120, maxHeight: 180, borderRadius: 4, border: '1px solid #ccc' }}
+                    onError={(e) => {
+                      e.target.style.display = 'none'
+                    }}
                   />
                 </div>
               )}
             </div>
+            
             <div className="form-group">
               <label htmlFor="description">Opis zlecenia *</label>
               <textarea
@@ -173,6 +187,7 @@ const OrderReviewPage = () => {
               />
               {errors.description && <span className="error-text">{errors.description}</span>}
             </div>
+            
             <div className="form-group">
               <label htmlFor="requirements">Dodatkowe wymagania</label>
               <textarea
@@ -185,11 +200,14 @@ const OrderReviewPage = () => {
               />
             </div>
           </div>
+
+          {/* Sekcja szczegółów zamówienia */}
           <div className="form-section">
             <h2 className="form-section-title">
               <DollarSign size={20} />
               Szczegóły zamówienia
             </h2>
+            
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="reviewPrice">Cena za recenzję (PLN) *</label>
@@ -205,6 +223,7 @@ const OrderReviewPage = () => {
                 />
                 {errors.reviewPrice && <span className="error-text">{errors.reviewPrice}</span>}
               </div>
+              
               <div className="form-group">
                 <label htmlFor="deadline">Termin wykonania *</label>
                 <input
@@ -218,6 +237,7 @@ const OrderReviewPage = () => {
                 {errors.deadline && <span className="error-text">{errors.deadline}</span>}
               </div>
             </div>
+            
             <div className="form-group">
               <label htmlFor="maxReviewers">Maks. liczba recenzentów</label>
               <select
@@ -233,14 +253,17 @@ const OrderReviewPage = () => {
               </select>
             </div>
           </div>
+
+          {/* Sekcja danych zleceniodawcy */}
           <div className="form-section">
             <h2 className="form-section-title">
               <User size={20} />
               Dane zleceniodawcy
             </h2>
+            
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="authorName">Imię i nazwisko *</label>
+                <label htmlFor="authorName">Nazwa użytkownika *</label>
                 <input
                   type="text"
                   id="authorName"
@@ -248,9 +271,15 @@ const OrderReviewPage = () => {
                   value={formData.authorName}
                   onChange={handleChange}
                   className={errors.authorName ? 'error' : ''}
+                  readOnly={!!user} // Readonly jeśli zalogowany
+                  style={{
+                    backgroundColor: user ? '#f8f9fa' : 'white',
+                    cursor: user ? 'not-allowed' : 'text'
+                  }}
                 />
                 {errors.authorName && <span className="error-text">{errors.authorName}</span>}
               </div>
+              
               <div className="form-group">
                 <label htmlFor="authorEmail">Email *</label>
                 <input
@@ -260,24 +289,24 @@ const OrderReviewPage = () => {
                   value={formData.authorEmail}
                   onChange={handleChange}
                   className={errors.authorEmail ? 'error' : ''}
+                  placeholder="kontakt@email.com"
                 />
                 {errors.authorEmail && <span className="error-text">{errors.authorEmail}</span>}
               </div>
             </div>
-            <div className="form-group">
-              <label htmlFor="paymentMethod">Metoda płatności</label>
-              <select
-                id="paymentMethod"
-                name="paymentMethod"
-                value={formData.paymentMethod}
-                onChange={handleChange}
-              >
-                <option value="paypal">PayPal</option>
-                <option value="blik">BLIK</option>
-                <option value="przelew">Przelew tradycyjny</option>
-              </select>
+            
+            {/* DODANO: Informacja o płatnościach */}
+            <div className="payment-info-box">
+              <h4>💰 Informacja o płatnościach</h4>
+              <p>
+                Recenzenci będą podawać swoje dane płatności (PayPal, BLIK, przelew) 
+                podczas pisania recenzji. Wypłata nastąpi po zaakceptowaniu recenzji.
+              </p>
             </div>
+            
+            {/* USUNIĘTO: Pole wyboru metody płatności */}
           </div>
+
           <button
             type="submit"
             className="btn-send-order"

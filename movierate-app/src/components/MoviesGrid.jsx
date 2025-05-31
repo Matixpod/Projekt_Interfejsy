@@ -1,14 +1,20 @@
 import React, { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Star } from 'lucide-react'
+import { Star, Loader2 } from 'lucide-react'
 import useMoviesData from '../hooks/useMoviesData'
 import FilterSort from './FilterSort'
+import { useSettings } from '../context/SettingsContext' // DODANO
 
 const MoviesGrid = () => {
   const { movies, loading } = useMoviesData()
+  const { settings } = useSettings() // DODANO
   const navigate = useNavigate()
   const [selectedGenre, setSelectedGenre] = useState('all')
   const [sortBy, setSortBy] = useState('popularity')
+  
+  // DODANO: Load More functionality
+  const [visibleCount, setVisibleCount] = useState(12)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   // Wyodrębnij unikalne gatunki
   const genres = useMemo(() => {
@@ -44,8 +50,8 @@ const MoviesGrid = () => {
         break
       case 'newest':
         filtered.sort((a, b) => {
-          const yearA = parseInt(a.title.match(/$$(\d{4})$$/)?.[1] || 0)
-          const yearB = parseInt(b.title.match(/$$(\d{4})$$/)?.[1] || 0)
+          const yearA = parseInt(a.title.match(/\((\d{4})\)$/)?.[1] || 0)
+          const yearB = parseInt(b.title.match(/\((\d{4})\)$/)?.[1] || 0)
           return yearB - yearA
         })
         break
@@ -59,11 +65,33 @@ const MoviesGrid = () => {
     return filtered
   }, [movies, selectedGenre, sortBy])
 
+  // DODANO: Reset visible count when filters change
+  React.useEffect(() => {
+    setVisibleCount(12)
+  }, [selectedGenre, sortBy])
+
+  // DODANO: Load More handler
+  const handleLoadMore = () => {
+    setIsLoadingMore(true)
+    
+    // Symulacja ładowania (można usunąć jeśli dane ładują się natychmiast)
+    setTimeout(() => {
+      setVisibleCount(prev => prev + 9) // Dodaj 9 kolejnych filmów
+      setIsLoadingMore(false)
+    }, 800) // Krótka przerwa dla lepszego UX
+  }
+
+  // DODANO: Calculate visible movies and remaining count
+  const visibleMovies = filteredAndSortedMovies.slice(0, visibleCount)
+  const remainingCount = filteredAndSortedMovies.length - visibleCount
+  const hasMore = remainingCount > 0
+
   if (loading) {
     return (
       <div className="movies-container">
-        <div style={{ textAlign: 'center', padding: '50px' }}>
-          Ładowanie filmów...
+        <div className="loading-state">
+          <Loader2 className="loading-spinner" size={32} />
+          <p>Ładowanie filmów...</p>
         </div>
       </div>
     )
@@ -81,16 +109,25 @@ const MoviesGrid = () => {
       />
       
       <div className="results-info">
-        Znaleziono {filteredAndSortedMovies.length} filmów
-        {selectedGenre !== 'all' && ` w kategorii: ${selectedGenre}`}
+        <span className="results-count">
+          Wyświetlanie {visibleMovies.length} z {filteredAndSortedMovies.length} filmów
+        </span>
+        {selectedGenre !== 'all' && (
+          <span className="results-filter"> w kategorii: <strong>{selectedGenre}</strong></span>
+        )}
       </div>
 
       <div className="movies-grid">
-        {filteredAndSortedMovies.slice(0, 12).map(movie => (
+        {visibleMovies.map((movie, index) => (
           <div 
             key={movie.id} 
             className="movie-card"
             onClick={() => navigate(`/movie/${movie.id}`)}
+            style={{
+              animationDelay: settings.reduceMotion ? '0s' : `${(index % 9) * 0.1}s`, // Stagger animation
+              transform: settings.reduceMotion ? 'none' : undefined,
+              transition: settings.reduceMotion ? 'none' : undefined
+            }}
           >
             <div className="movie-image">
               <img 
@@ -124,17 +161,41 @@ const MoviesGrid = () => {
         ))}
       </div>
       
-      {filteredAndSortedMovies.length > 12 && (
+      {/* ZAKTUALIZOWANY Load More Button */}
+      {hasMore && (
         <div className="load-more-container">
-          <button className="load-more-btn">
-            Pokaż więcej
+          <div className="load-more-info">
+            Pozostało jeszcze <strong>{remainingCount}</strong> {remainingCount === 1 ? 'film' : 'filmów'}
+          </div>
+          <button 
+            className="load-more-btn"
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            style={{
+              transition: settings.reduceMotion ? 'none' : undefined
+            }}
+          >
+            {isLoadingMore ? (
+              <>
+                <Loader2 className="loading-spinner" size={16} />
+                Ładowanie...
+              </>
+            ) : (
+              `Pokaż więcej (następne ${Math.min(9, remainingCount)})`
+            )}
           </button>
         </div>
       )}
+
+      {/* DODANO: End message when all loaded */}
+      {!hasMore && filteredAndSortedMovies.length > 12 && (
+        <div className="load-more-container">
+          <div className="all-loaded-message">
+            🎬 To wszystko! Wyświetlono wszystkie {filteredAndSortedMovies.length} filmów.
+          </div>
+        </div>
+      )}
       
-      <footer className="movies-footer">
-        <Link to="/" className="footer-logo">MovieRate</Link>
-      </footer>
     </div>
   )
 }

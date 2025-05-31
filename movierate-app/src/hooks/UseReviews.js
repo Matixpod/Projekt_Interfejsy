@@ -2,20 +2,18 @@ import { useState, useEffect } from 'react'
 
 const useReviews = () => {
   const [reviews, setReviews] = useState(() => {
-    // Pobierz dane z localStorage przy inicjalizacji
     const savedReviews = localStorage.getItem('movierate-reviews')
     return savedReviews ? JSON.parse(savedReviews) : []
   })
 
-  // Zapisz do localStorage przy każdej zmianie
   useEffect(() => {
     localStorage.setItem('movierate-reviews', JSON.stringify(reviews))
   }, [reviews])
 
-  const addReview = (newReview) => {
+  const addReview = (newReview, updateOrderCallback = null) => {
     const review = {
       ...newReview,
-      id: Date.now(), // Prosty sposób generowania ID
+      id: Date.now(),
       createdAt: new Date().toISOString(),
       likes: 0,
       isReviewOfTheDay: false
@@ -26,6 +24,11 @@ const useReviews = () => {
       const updatedReviews = prev.map(r => ({ ...r, isReviewOfTheDay: false }))
       return [...updatedReviews, { ...review, isReviewOfTheDay: true }]
     })
+    
+    // DODANO: Wywołaj callback do aktualizacji zlecenia
+    if (updateOrderCallback && newReview.orderId) {
+      updateOrderCallback(newReview.orderId)
+    }
     
     return review
   }
@@ -58,13 +61,19 @@ const useReviews = () => {
     )
   }
 
+  // DODANO: Funkcja do liczenia recenzji dla zlecenia
+  const getReviewCountForOrder = (orderId) => {
+    return reviews.filter(review => review.orderId === orderId).length
+  }
+
   return {
     reviews,
     addReview,
     updateReview,
     deleteReview,
     likeReview,
-    hasUserReviewedOrder
+    hasUserReviewedOrder,
+    getReviewCountForOrder // DODANO
   }
 }
 

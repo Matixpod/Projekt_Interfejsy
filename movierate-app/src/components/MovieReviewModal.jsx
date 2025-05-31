@@ -1,19 +1,22 @@
 import React, { useState } from 'react'
-import { X, Star, Send, Clock, Calendar, User, Film } from 'lucide-react'
+import { X, Star, Send, Clock, Calendar, User, Film, CreditCard, Smartphone, Building } from 'lucide-react'
 import { useReviewsContext } from '../context/ReviewsContext'
 import { useSettings } from '../context/SettingsContext'
-import { useAuth } from '../context/AuthContext' // DODANO
+import { useAuth } from '../context/AuthContext'
 
 const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
   const { addReview, hasUserReviewedOrder } = useReviewsContext()
   const { settings } = useSettings()
-  const { user } = useAuth() // DODANO
+  const { user } = useAuth()
   
   const [formData, setFormData] = useState({
-    authorName: user?.username || '', // AUTOMATYCZNE WYPEŁNIENIE
+    authorName: user?.username || '',
     rating: 0,
     reviewText: '',
-    hoveredRating: 0
+    hoveredRating: 0,
+    paypalLink: '',
+    blikNumber: '',
+    bankTransferNumber: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
@@ -23,7 +26,6 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
   const validateForm = () => {
     const newErrors = {}
     
-    // UPROSZCZONA WALIDACJA - username zawsze z user context
     if (!user?.username) {
       newErrors.authorName = 'Musisz być zalogowany żeby napisać recenzję'
     }
@@ -40,13 +42,50 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
       newErrors.reviewText = 'Recenzja nie może być dłuższa niż 1000 znaków'
     }
 
-    // SPRAWDŹ CZY UŻYTKOWNIK JUŻ NIE NAPISAŁ RECENZJI
+    // DODANO: Walidacja pól płatności - co najmniej jedna metoda musi być podana
+    const hasPaymentMethod = formData.paypalLink.trim() || 
+                            formData.blikNumber.trim() || 
+                            formData.bankTransferNumber.trim()
+    
+    if (!hasPaymentMethod) {
+      newErrors.payment = 'Podaj co najmniej jedną metodę płatności'
+    }
+
+    // Walidacja formatu pól płatności
+    if (formData.paypalLink.trim() && !isValidPayPalLink(formData.paypalLink)) {
+      newErrors.paypalLink = 'Nieprawidłowy format linku PayPal'
+    }
+
+    if (formData.blikNumber.trim() && !isValidPhoneNumber(formData.blikNumber)) {
+      newErrors.blikNumber = 'Nieprawidłowy numer telefonu (9 cyfr)'
+    }
+
+    if (formData.bankTransferNumber.trim() && !isValidBankAccount(formData.bankTransferNumber)) {
+      newErrors.bankTransferNumber = 'Nieprawidłowy numer konta (26 cyfr)'
+    }
+
     if (user?.username && hasUserReviewedOrder(orderData.id, user.username)) {
       newErrors.general = 'Już napisałeś recenzję dla tego zlecenia'
     }
     
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  // DODANO: Funkcje walidacji formatów
+  const isValidPayPalLink = (link) => {
+    const paypalRegex = /^(https?:\/\/)?(www\.)?(paypal\.me\/|paypal\.com\/)/i
+    return paypalRegex.test(link) || link.includes('@') // email też akceptujemy
+  }
+
+  const isValidPhoneNumber = (phone) => {
+    const cleanPhone = phone.replace(/\D/g, '')
+    return cleanPhone.length === 9 && /^\d{9}$/.test(cleanPhone)
+  }
+
+  const isValidBankAccount = (account) => {
+    const cleanAccount = account.replace(/\s/g, '')
+    return cleanAccount.length === 26 && /^\d{26}$/.test(cleanAccount)
   }
 
   const handleSubmit = async (e) => {
@@ -61,20 +100,29 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
         orderId: orderData.id,
         movieTitle: orderData.movieTitle,
         movieImage: orderData.movieImage,
-        authorName: user.username, // ZAWSZE Z USER CONTEXT
+        authorName: user.username,
         rating: formData.rating,
         reviewText: formData.reviewText.trim(),
-        avatar: user.avatar || getRandomAvatar() // UŻYJ AVATAR UŻYTKOWNIKA
+        avatar: user.avatar || getRandomAvatar(),
+        // DODANO: Pola płatności
+        paymentMethods: {
+          paypal: formData.paypalLink.trim() || null,
+          blik: formData.blikNumber.trim() || null,
+          bankTransfer: formData.bankTransferNumber.trim() || null
+        }
       }
       
       addReview(reviewData)
       
-      // RESET TYLKO RATING I TEXT (NIE USERNAME)
+      // Reset formularza
       setFormData({
         authorName: user.username,
         rating: 0,
         reviewText: '',
-        hoveredRating: 0
+        hoveredRating: 0,
+        paypalLink: '',
+        blikNumber: '',
+        bankTransferNumber: ''
       })
       
       alert('Recenzja została dodana pomyślnie!')
@@ -104,14 +152,26 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    setErrors(prev => ({ ...prev, [field]: null }))
+    setErrors(prev => ({ ...prev, [field]: null, payment: null }))
+  }
+
+  // DODANO: Formatowanie numerów podczas wpisywania
+  const handleBlikChange = (value) => {
+    const cleanValue = value.replace(/\D/g, '').slice(0, 9)
+    const formattedValue = cleanValue.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3').trim()
+    handleInputChange('blikNumber', formattedValue)
+  }
+
+  const handleBankAccountChange = (value) => {
+    const cleanValue = value.replace(/\D/g, '').slice(0, 26)
+    const formattedValue = cleanValue.replace(/(\d{2})(\d{4})(\d{4})(\d{4})(\d{4})(\d{4})(\d{4})/, '$1 $2 $3 $4 $5 $6 $7').trim()
+    handleInputChange('bankTransferNumber', formattedValue)
   }
 
   return (
     <>
       <div className="movie-modal-overlay" onClick={onClose} />
       <div className="movie-review-modal">
-        {/* Header z przyciskiem zamknij */}
         <button 
           className="movie-modal-close"
           onClick={onClose}
@@ -121,7 +181,6 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
         </button>
 
         <div className="movie-modal-container">
-          {/* Lewa strona - Poster i podstawowe info */}
           <div className="movie-modal-poster">
             <img 
               src={orderData.movieImage} 
@@ -142,14 +201,12 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
             </div>
           </div>
 
-          {/* Prawa strona - Szczegóły i formularz */}
           <div className="movie-modal-details">
             <div className="movie-modal-header">
               <h1 className="movie-modal-title">{orderData.movieTitle}</h1>
               <p className="movie-modal-subtitle">Zlecenie recenzji</p>
             </div>
 
-            {/* Informacje o zleceniu */}
             <div className="movie-modal-info">
               <div className="info-item">
                 <User size={16} />
@@ -165,17 +222,14 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
               </div>
             </div>
 
-            {/* Opis zlecenia */}
             <div className="movie-modal-description">
               <h3>Opis zlecenia</h3>
               <p>{orderData.description}</p>
             </div>
 
-            {/* Formularz recenzji */}
             <div className="movie-modal-review-form">
               <h3>📝 Napisz swoją recenzję</h3>
               
-              {/* POKAZUJ BŁĄD OGÓLNY */}
               {errors.general && (
                 <div className="auth-error" style={{ marginBottom: '20px' }}>
                   {errors.general}
@@ -183,7 +237,7 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
               )}
               
               <form onSubmit={handleSubmit}>
-                {/* Nazwa użytkownika - TYLKO DO ODCZYTU */}
+                {/* Autor recenzji */}
                 <div className="form-group-inline">
                   <label htmlFor="authorName">Autor recenzji</label>
                   <div className="logged-user-info">
@@ -248,6 +302,69 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
                   {errors.reviewText && <span className="error-text">{errors.reviewText}</span>}
                 </div>
 
+                {/* DODANO: Sekcja płatności */}
+                <div className="payment-section">
+                  <h4>💰 Dane do wypłaty ({orderData.price} PLN)</h4>
+                  <p className="payment-hint">Podaj co najmniej jedną metodę płatności do otrzymania wynagrodzenia</p>
+                  
+                  {errors.payment && (
+                    <div className="payment-error">{errors.payment}</div>
+                  )}
+
+                  {/* PayPal */}
+                  <div className="form-group-inline">
+                    <label htmlFor="paypalLink">
+                      <CreditCard size={16} />
+                      PayPal
+                    </label>
+                    <input
+                      id="paypalLink"
+                      type="text"
+                      value={formData.paypalLink}
+                      onChange={(e) => handleInputChange('paypalLink', e.target.value)}
+                      placeholder="paypal.me/username lub email@paypal.com"
+                      className={errors.paypalLink ? 'error' : ''}
+                    />
+                    {errors.paypalLink && <span className="error-text">{errors.paypalLink}</span>}
+                  </div>
+
+                  {/* BLIK */}
+                  <div className="form-group-inline">
+                    <label htmlFor="blikNumber">
+                      <Smartphone size={16} />
+                      BLIK (numer telefonu)
+                    </label>
+                    <input
+                      id="blikNumber"
+                      type="text"
+                      value={formData.blikNumber}
+                      onChange={(e) => handleBlikChange(e.target.value)}
+                      placeholder="123 456 789"
+                      className={errors.blikNumber ? 'error' : ''}
+                      maxLength={11}
+                    />
+                    {errors.blikNumber && <span className="error-text">{errors.blikNumber}</span>}
+                  </div>
+
+                  {/* Przelew bankowy */}
+                  <div className="form-group-inline">
+                    <label htmlFor="bankTransferNumber">
+                      <Building size={16} />
+                      Numer konta bankowego
+                    </label>
+                    <input
+                      id="bankTransferNumber"
+                      type="text"
+                      value={formData.bankTransferNumber}
+                      onChange={(e) => handleBankAccountChange(e.target.value)}
+                      placeholder="12 3456 7890 1234 5678 9012 3456"
+                      className={errors.bankTransferNumber ? 'error' : ''}
+                      maxLength={35}
+                    />
+                    {errors.bankTransferNumber && <span className="error-text">{errors.bankTransferNumber}</span>}
+                  </div>
+                </div>
+
                 {/* Przyciski */}
                 <div className="movie-modal-actions">
                   <button 
@@ -261,7 +378,7 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
                   <button 
                     type="submit" 
                     className="btn-modal-submit"
-                    disabled={isSubmitting || !user} // WYŁĄCZ JEŚLI BRAK USERA
+                    disabled={isSubmitting || !user}
                   >
                     {isSubmitting ? (
                       'Publikowanie...'
@@ -283,4 +400,3 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
 }
 
 export default MovieReviewModal
-

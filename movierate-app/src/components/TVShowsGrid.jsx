@@ -1,14 +1,20 @@
 import React, { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Star } from 'lucide-react'
+import { Star, Loader2 } from 'lucide-react'
 import useTVShowsData from '../hooks/useTVShowsData'
 import FilterSort from './FilterSort'
+import { useSettings } from '../context/SettingsContext' // DODANO
 
 const TVShowsGrid = () => {
   const { tvShows, loading } = useTVShowsData()
+  const { settings } = useSettings() // DODANO
   const navigate = useNavigate()
   const [selectedGenre, setSelectedGenre] = useState('all')
   const [sortBy, setSortBy] = useState('popularity')
+  
+  // DODANO: Load More functionality
+  const [visibleCount, setVisibleCount] = useState(12)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   // Wyodrębnij unikalne gatunki
   const genres = useMemo(() => {
@@ -43,7 +49,7 @@ const TVShowsGrid = () => {
         filtered.sort((a, b) => parseInt(b.reviews) - parseInt(a.reviews))
         break
       case 'newest':
-        filtered.sort((a, b) => a.title.localeCompare(b.title)) // Możesz dostosować jeśli masz daty
+        filtered.sort((a, b) => a.title.localeCompare(b.title))
         break
       case 'alphabetical':
         filtered.sort((a, b) => a.title.localeCompare(b.title))
@@ -55,11 +61,32 @@ const TVShowsGrid = () => {
     return filtered
   }, [tvShows, selectedGenre, sortBy])
 
+  // DODANO: Reset visible count when filters change
+  React.useEffect(() => {
+    setVisibleCount(12)
+  }, [selectedGenre, sortBy])
+
+  // DODANO: Load More handler
+  const handleLoadMore = () => {
+    setIsLoadingMore(true)
+    
+    setTimeout(() => {
+      setVisibleCount(prev => prev + 9) // Dodaj 9 kolejnych seriali
+      setIsLoadingMore(false)
+    }, 800)
+  }
+
+  // DODANO: Calculate visible shows and remaining count
+  const visibleShows = filteredAndSortedShows.slice(0, visibleCount)
+  const remainingCount = filteredAndSortedShows.length - visibleCount
+  const hasMore = remainingCount > 0
+
   if (loading) {
     return (
       <div className="tv-shows-container">
-        <div style={{ textAlign: 'center', padding: '50px' }}>
-          Ładowanie seriali...
+        <div className="loading-state">
+          <Loader2 className="loading-spinner" size={32} />
+          <p>Ładowanie seriali...</p>
         </div>
       </div>
     )
@@ -77,17 +104,26 @@ const TVShowsGrid = () => {
       />
       
       <div className="results-info">
-        Znaleziono {filteredAndSortedShows.length} seriali
-        {selectedGenre !== 'all' && ` w kategorii: ${selectedGenre}`}
+        <span className="results-count">
+          Wyświetlanie {visibleShows.length} z {filteredAndSortedShows.length} seriali
+        </span>
+        {selectedGenre !== 'all' && (
+          <span className="results-filter"> w kategorii: <strong>{selectedGenre}</strong></span>
+        )}
       </div>
 
       <div className="tv-shows-grid">
-        {filteredAndSortedShows.slice(0, 12).map(show => (
+        {visibleShows.map((show, index) => (
           <div 
             key={show.id} 
             className="tv-show-card"
             onClick={() => navigate(`/tv-show/${show.id}`)}
-            style={{ cursor: 'pointer' }}
+            style={{ 
+              cursor: 'pointer',
+              animationDelay: settings.reduceMotion ? '0s' : `${(index % 9) * 0.1}s`,
+              transform: settings.reduceMotion ? 'none' : undefined,
+              transition: settings.reduceMotion ? 'none' : undefined
+            }}
           >
             <div className="tv-show-image">
               <img 
@@ -133,11 +169,38 @@ const TVShowsGrid = () => {
         ))}
       </div>
       
-      {filteredAndSortedShows.length > 12 && (
+      {/* ZAKTUALIZOWANY Load More Button */}
+      {hasMore && (
         <div className="load-more-container">
-          <button className="load-more-btn">
-            Pokaż więcej
+          <div className="load-more-info">
+            Pozostało jeszcze <strong>{remainingCount}</strong> {remainingCount === 1 ? 'serial' : 'seriali'}
+          </div>
+          <button 
+            className="load-more-btn"
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            style={{
+              transition: settings.reduceMotion ? 'none' : undefined
+            }}
+          >
+            {isLoadingMore ? (
+              <>
+                <Loader2 className="loading-spinner" size={16} />
+                Ładowanie...
+              </>
+            ) : (
+              `Pokaż więcej (następne ${Math.min(9, remainingCount)})`
+            )}
           </button>
+        </div>
+      )}
+
+      {/* DODANO: End message when all loaded */}
+      {!hasMore && filteredAndSortedShows.length > 12 && (
+        <div className="load-more-container">
+          <div className="all-loaded-message">
+            📺 To wszystko! Wyświetlono wszystkie {filteredAndSortedShows.length} seriali.
+          </div>
         </div>
       )}
     </div>
