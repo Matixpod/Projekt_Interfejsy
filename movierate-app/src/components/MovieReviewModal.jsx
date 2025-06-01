@@ -1,19 +1,20 @@
 import React, { useState } from 'react'
 import { X, Star, Send, Clock, Calendar, User, Film, CreditCard, Smartphone, Building } from 'lucide-react'
 import { useReviewsContext } from '../context/ReviewsContext'
+import { useOrdersContext } from '../context/OrdersContext'
 import { useSettings } from '../context/SettingsContext'
 import { useAuth } from '../context/AuthContext'
 
 const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
   const { addReview, hasUserReviewedOrder } = useReviewsContext()
+  const { updateOrder } = useOrdersContext()
   const { settings } = useSettings()
   const { user } = useAuth()
   
   const [formData, setFormData] = useState({
     authorName: user?.username || '',
-    rating: 0,
+    rating: 50, // ZMIENIONO: domyślnie 50/100
     reviewText: '',
-    hoveredRating: 0,
     paypalLink: '',
     blikNumber: '',
     bankTransferNumber: ''
@@ -30,8 +31,9 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
       newErrors.authorName = 'Musisz być zalogowany żeby napisać recenzję'
     }
     
-    if (formData.rating === 0) {
-      newErrors.rating = 'Ocena jest wymagana'
+    // ZMIENIONO: walidacja 1-100
+    if (formData.rating < 1 || formData.rating > 100) {
+      newErrors.rating = 'Ocena musi być między 1 a 100'
     }
     
     if (!formData.reviewText.trim()) {
@@ -42,7 +44,6 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
       newErrors.reviewText = 'Recenzja nie może być dłuższa niż 1000 znaków'
     }
 
-    // DODANO: Walidacja pól płatności - co najmniej jedna metoda musi być podana
     const hasPaymentMethod = formData.paypalLink.trim() || 
                             formData.blikNumber.trim() || 
                             formData.bankTransferNumber.trim()
@@ -51,7 +52,6 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
       newErrors.payment = 'Podaj co najmniej jedną metodę płatności'
     }
 
-    // Walidacja formatu pól płatności
     if (formData.paypalLink.trim() && !isValidPayPalLink(formData.paypalLink)) {
       newErrors.paypalLink = 'Nieprawidłowy format linku PayPal'
     }
@@ -72,10 +72,49 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
     return Object.keys(newErrors).length === 0
   }
 
-  // DODANO: Funkcje walidacji formatów
+  // DODANO: Funkcja do renderowania gwiazdek na podstawie ratingu 1-100
+  const renderStars = (rating) => {
+    const stars = []
+    const maxStars = 5
+    
+    for (let i = 1; i <= maxStars; i++) {
+      const starPercentage = Math.max(0, Math.min(100, (rating - (i - 1) * 20) * 5))
+      const fillPercentage = Math.max(0, Math.min(100, starPercentage))
+      
+      stars.push(
+        <div key={i} className="star-container">
+          <Star size={20} color="#ddd" fill="none" />
+          <div 
+            className="star-fill"
+            style={{ 
+              width: `${fillPercentage}%`,
+              background: 'linear-gradient(90deg, #ffd700, #ffed4e)'
+            }}
+          >
+            <Star size={20} color="#ffd700" fill="#ffd700" />
+          </div>
+        </div>
+      )
+    }
+    
+    return stars
+  }
+
+  // DODANO: Funkcja do konwersji ratingu na opis
+  const getRatingDescription = (rating) => {
+    if (rating >= 90) return 'Doskonały'
+    if (rating >= 80) return 'Bardzo dobry'
+    if (rating >= 70) return 'Dobry'
+    if (rating >= 60) return 'Średni'
+    if (rating >= 50) return 'Słaby'
+    if (rating >= 30) return 'Bardzo słaby'
+    return 'Katastrofalny'
+  }
+
+  // ... pozostałe funkcje walidacji bez zmian ...
   const isValidPayPalLink = (link) => {
     const paypalRegex = /^(https?:\/\/)?(www\.)?(paypal\.me\/|paypal\.com\/)/i
-    return paypalRegex.test(link) || link.includes('@') // email też akceptujemy
+    return paypalRegex.test(link) || link.includes('@')
   }
 
   const isValidPhoneNumber = (phone) => {
@@ -101,10 +140,9 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
         movieTitle: orderData.movieTitle,
         movieImage: orderData.movieImage,
         authorName: user.username,
-        rating: formData.rating,
+        rating: formData.rating, // Już w skali 1-100
         reviewText: formData.reviewText.trim(),
         avatar: user.avatar || getRandomAvatar(),
-        // DODANO: Pola płatności
         paymentMethods: {
           paypal: formData.paypalLink.trim() || null,
           blik: formData.blikNumber.trim() || null,
@@ -114,12 +152,15 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
       
       addReview(reviewData)
       
-      // Reset formularza
+      const newCurrentReviewers = (orderData.currentReviewers || 0) + 1
+      updateOrder(orderData.id, {
+        currentReviewers: newCurrentReviewers
+      })
+      
       setFormData({
         authorName: user.username,
-        rating: 0,
+        rating: 50,
         reviewText: '',
-        hoveredRating: 0,
         paypalLink: '',
         blikNumber: '',
         bankTransferNumber: ''
@@ -141,21 +182,11 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
     return avatars[Math.floor(Math.random() * avatars.length)]
   }
 
-  const handleRatingClick = (rating) => {
-    setFormData(prev => ({ ...prev, rating }))
-    setErrors(prev => ({ ...prev, rating: null }))
-  }
-
-  const handleRatingHover = (rating) => {
-    setFormData(prev => ({ ...prev, hoveredRating: rating }))
-  }
-
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     setErrors(prev => ({ ...prev, [field]: null, payment: null }))
   }
 
-  // DODANO: Formatowanie numerów podczas wpisywania
   const handleBlikChange = (value) => {
     const cleanValue = value.replace(/\D/g, '').slice(0, 9)
     const formattedValue = cleanValue.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3').trim()
@@ -254,32 +285,37 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
                   {errors.authorName && <span className="error-text">{errors.authorName}</span>}
                 </div>
 
-                {/* Rating */}
-                <div className="form-group-inline">
-                  <label>Twoja ocena</label>
-                  <div className="rating-input-horizontal">
-                    {[1, 2, 3, 4, 5].map(rating => (
-                      <button
-                        key={rating}
-                        type="button"
-                        className="rating-star"
-                        onClick={() => handleRatingClick(rating)}
-                        onMouseEnter={() => handleRatingHover(rating)}
-                        onMouseLeave={() => handleRatingHover(0)}
-                        style={{
-                          transition: settings.reduceMotion ? 'none' : undefined
-                        }}
-                      >
-                        <Star
-                          size={24}
-                          fill={rating <= (formData.hoveredRating || formData.rating) ? "#ffd700" : "none"}
-                          color={rating <= (formData.hoveredRating || formData.rating) ? "#ffd700" : "#ddd"}
-                        />
-                      </button>
-                    ))}
-                    <span className="rating-label">
-                      {formData.rating > 0 ? `${formData.rating}/5` : 'Wybierz ocenę'}
-                    </span>
+                {/* ZMIENIONO: Rating 1-100 z sliderem */}
+                <div className="form-group-full">
+                  <label htmlFor="rating">Twoja ocena</label>
+                  <div className="rating-input-100">
+                    <div className="rating-slider-container">
+                      <input
+                        type="range"
+                        id="rating"
+                        min="1"
+                        max="100"
+                        value={formData.rating}
+                        onChange={(e) => handleInputChange('rating', parseInt(e.target.value))}
+                        className="rating-slider"
+                      />
+                      <div className="rating-labels">
+                        <span>1</span>
+                        <span>25</span>
+                        <span>50</span>
+                        <span>75</span>
+                        <span>100</span>
+                      </div>
+                    </div>
+                    <div className="rating-display">
+                      <div className="rating-stars">
+                        {renderStars(formData.rating)}
+                      </div>
+                      <div className="rating-info">
+                        <span className="rating-number">{formData.rating}/100</span>
+                        <span className="rating-description">{getRatingDescription(formData.rating)}</span>
+                      </div>
+                    </div>
                   </div>
                   {errors.rating && <span className="error-text">{errors.rating}</span>}
                 </div>
@@ -302,7 +338,7 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
                   {errors.reviewText && <span className="error-text">{errors.reviewText}</span>}
                 </div>
 
-                {/* DODANO: Sekcja płatności */}
+                {/* Sekcja płatności - bez zmian */}
                 <div className="payment-section">
                   <h4>💰 Dane do wypłaty ({orderData.price} PLN)</h4>
                   <p className="payment-hint">Podaj co najmniej jedną metodę płatności do otrzymania wynagrodzenia</p>

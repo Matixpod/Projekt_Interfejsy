@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { Heart, Star, User, Calendar } from 'lucide-react'
+import { Heart, Calendar } from 'lucide-react'
 import { useSettings } from '../context/SettingsContext'
 import { useReviewsContext } from '../context/ReviewsContext'
+import { scaleRatingTo10, renderStarsFromRating100 } from '../utils/ratingUtils.jsx' // DODANO
 
 const CommunityReviews = ({ movieId = null, movieTitle = null }) => {
   const [likedReviews, setLikedReviews] = useState(new Set())
@@ -21,34 +22,28 @@ const CommunityReviews = ({ movieId = null, movieTitle = null }) => {
     })
   }
 
-  // FILTROWANIE RECENZJI
+  // Filtrowanie recenzji
   let filteredReviews = reviews
 
   if (movieId && movieTitle) {
-    // Dla DetailPage - pokaż tylko recenzje dla tego filmu
     filteredReviews = reviews.filter(review => {
-      // Sprawdź po movieTitle bo to jest bardziej niezawodne
       return review.movieTitle === movieTitle ||
-             review.movieTitle.includes(movieTitle.split(' (')[0]) || // usuń rok z tytułu jeśli jest
+             review.movieTitle.includes(movieTitle.split(' (')[0]) ||
              movieTitle.includes(review.movieTitle.split(' (')[0])
     })
   }
 
-  // Sortuj recenzje od najnowszych
   const sortedReviews = [...filteredReviews].sort((a, b) => 
     new Date(b.createdAt) - new Date(a.createdAt)
   )
 
-  // Znajdź "Review of the Day" lub najnowszą
   const reviewOfTheDay = sortedReviews.find(review => review.isReviewOfTheDay) || 
                          sortedReviews[0]
 
-  // Pozostałe recenzje
   const otherReviews = sortedReviews.filter(review => 
     reviewOfTheDay ? review.id !== reviewOfTheDay.id : true
-  ).slice(0, movieId ? 10 : 6) // Więcej recenzji na DetailPage
+  ).slice(0, movieId ? 10 : 6)
 
-  // Format daty
   const formatDate = (dateString) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -61,7 +56,6 @@ const CommunityReviews = ({ movieId = null, movieTitle = null }) => {
     return date.toLocaleDateString('pl-PL')
   }
 
-  // Tytuły w zależności od kontekstu
   const getTitle = () => {
     if (movieId && movieTitle) {
       return `Recenzje filmu "${movieTitle.split(' (')[0]}"`
@@ -77,7 +71,6 @@ const CommunityReviews = ({ movieId = null, movieTitle = null }) => {
     return null
   }
 
-  // Empty state
   if (sortedReviews.length === 0) {
     return (
       <section className="community-reviews">
@@ -140,18 +133,13 @@ const CommunityReviews = ({ movieId = null, movieTitle = null }) => {
                     </div>
                   </div>
                 </div>
+                {/* ZMIENIONO: Nowy system gwiazdek */}
                 <div className="review-rating">
-                  {[...Array(5)].map((_, i) => (
-                    <Star 
-                      key={i} 
-                      size={16} 
-                      fill={i < reviewOfTheDay.rating ? "#ffd700" : "none"}
-                      color="#ffd700"
-                    />
-                  ))}
-                  <span className="rating-number">
-                    {reviewOfTheDay.rating}/5
-                  </span>
+                  {renderStarsFromRating100(reviewOfTheDay.rating, 18)}
+                  <div className="rating-info">
+                    <span className="rating-number-100">{reviewOfTheDay.rating}/100</span>
+                    <span className="rating-number-10">({scaleRatingTo10(reviewOfTheDay.rating)}/10)</span>
+                  </div>
                 </div>
               </div>
               
@@ -208,18 +196,12 @@ const CommunityReviews = ({ movieId = null, movieTitle = null }) => {
                         </div>
                       </div>
                     </div>
+                    {/* ZMIENIONO: Nowy system gwiazdek dla małych kart */}
                     <div className="review-rating">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          size={14} 
-                          fill={i < review.rating ? "#ffd700" : "none"}
-                          color="#ffd700"
-                        />
-                      ))}
-                      <span className="rating-number-small">
-                        {review.rating}/5
-                      </span>
+                      {renderStarsFromRating100(review.rating, 16)}
+                      <div className="rating-info-small">
+                        <span className="rating-number-small">{review.rating}/100</span>
+                      </div>
                     </div>
                   </div>
                   
@@ -252,7 +234,6 @@ const CommunityReviews = ({ movieId = null, movieTitle = null }) => {
           </div>
         )}
 
-        {/* Call to Action - tylko na stronie głównej */}
         {!movieId && (
           <div className="reviews-cta">
             <h3>Chcesz dodać swoją recenzję?</h3>

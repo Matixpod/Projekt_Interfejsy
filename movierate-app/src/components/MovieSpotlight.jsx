@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Star, Film, ChevronLeft, ChevronRight } from 'lucide-react' // Zmieniono: dodano Film, usunięto Play i Plus
-import { Link } from 'react-router-dom' // DODANO: Import Link
+import { Star, Film, ChevronLeft, ChevronRight } from 'lucide-react' 
+import { Link } from 'react-router-dom' 
 import useMoviesData from '../hooks/useMoviesData'
 import { useSettings } from '../context/SettingsContext'
 
@@ -11,7 +11,7 @@ const MovieSpotlight = () => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
 
-  // Wybierz top 8 najlepiej ocenianych filmów do carousel
+  // Wybierz top 8 najlepiej ocenianych filmów
   const spotlightMovies = movies
     .filter(movie => movie.rating > 4.0)
     .sort((a, b) => b.rating - a.rating)
