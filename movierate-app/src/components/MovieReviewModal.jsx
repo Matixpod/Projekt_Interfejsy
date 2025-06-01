@@ -13,7 +13,7 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
   
   const [formData, setFormData] = useState({
     authorName: user?.username || '',
-    rating: 50, // ZMIENIONO: domyślnie 50/100
+    rating: 50,
     reviewText: '',
     paypalLink: '',
     blikNumber: '',
@@ -31,7 +31,6 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
       newErrors.authorName = 'Musisz być zalogowany żeby napisać recenzję'
     }
     
-    // ZMIENIONO: walidacja 1-100
     if (formData.rating < 1 || formData.rating > 100) {
       newErrors.rating = 'Ocena musi być między 1 a 100'
     }
@@ -72,46 +71,7 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
     return Object.keys(newErrors).length === 0
   }
 
-  // DODANO: Funkcja do renderowania gwiazdek na podstawie ratingu 1-100
-  const renderStars = (rating) => {
-    const stars = []
-    const maxStars = 5
-    
-    for (let i = 1; i <= maxStars; i++) {
-      const starPercentage = Math.max(0, Math.min(100, (rating - (i - 1) * 20) * 5))
-      const fillPercentage = Math.max(0, Math.min(100, starPercentage))
-      
-      stars.push(
-        <div key={i} className="star-container">
-          <Star size={20} color="#ddd" fill="none" />
-          <div 
-            className="star-fill"
-            style={{ 
-              width: `${fillPercentage}%`,
-              background: 'linear-gradient(90deg, #ffd700, #ffed4e)'
-            }}
-          >
-            <Star size={20} color="#ffd700" fill="#ffd700" />
-          </div>
-        </div>
-      )
-    }
-    
-    return stars
-  }
-
-  // DODANO: Funkcja do konwersji ratingu na opis
-  const getRatingDescription = (rating) => {
-    if (rating >= 90) return 'Doskonały'
-    if (rating >= 80) return 'Bardzo dobry'
-    if (rating >= 70) return 'Dobry'
-    if (rating >= 60) return 'Średni'
-    if (rating >= 50) return 'Słaby'
-    if (rating >= 30) return 'Bardzo słaby'
-    return 'Katastrofalny'
-  }
-
-  // ... pozostałe funkcje walidacji bez zmian ...
+  // Funkcje walidacji
   const isValidPayPalLink = (link) => {
     const paypalRegex = /^(https?:\/\/)?(www\.)?(paypal\.me\/|paypal\.com\/)/i
     return paypalRegex.test(link) || link.includes('@')
@@ -127,6 +87,66 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
     return cleanAccount.length === 26 && /^\d{26}$/.test(cleanAccount)
   }
 
+  // Funkcja do renderowania czystych gwiazdek
+  const renderStarsClean = (rating) => {
+    const stars = []
+    const maxStars = 5
+    
+    // Konwertuj rating 1-100 do skali gwiazdek (0-5)
+    const starRating = (rating / 100) * 5
+    
+    for (let i = 1; i <= maxStars; i++) {
+      const filled = i <= starRating
+      const partialFill = i > Math.floor(starRating) && i <= Math.ceil(starRating)
+      const fillPercentage = partialFill ? ((starRating % 1) * 100) : (filled ? 100 : 0)
+      
+      stars.push(
+        <div key={i} className="star-container-clean">
+          {/* Tło gwiazdki - zawsze szare */}
+          <svg width={24} height={24} viewBox="0 0 24 24" className="star-background">
+            <path 
+              d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" 
+              fill="none" 
+              stroke="#ddd" 
+              strokeWidth="1"
+            />
+          </svg>
+          
+          {/* Wypełnienie gwiazdki - żółte */}
+          {fillPercentage > 0 && (
+            <svg width={24} height={24} viewBox="0 0 24 24" className="star-fill-overlay">
+              <defs>
+                <clipPath id={`clip-star-${i}`}>
+                  <rect x="0" y="0" width={`${fillPercentage}%`} height="100%" />
+                </clipPath>
+              </defs>
+              <path 
+                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" 
+                fill="#ffd700" 
+                stroke="#ffd700"
+                strokeWidth="1"
+                clipPath={`url(#clip-star-${i})`}
+              />
+            </svg>
+          )}
+        </div>
+      )
+    }
+    
+    return stars
+  }
+
+  // Funkcja do konwersji ratingu na opis
+  const getRatingDescription = (rating) => {
+    if (rating >= 90) return 'Doskonały'
+    if (rating >= 80) return 'Bardzo dobry'
+    if (rating >= 70) return 'Dobry'
+    if (rating >= 60) return 'Średni'
+    if (rating >= 50) return 'Słaby'
+    if (rating >= 30) return 'Bardzo słaby'
+    return 'Katastrofalny'
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
@@ -135,12 +155,15 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
     setIsSubmitting(true)
     
     try {
+      console.log('🎬 Dodawanie recenzji dla zlecenia:', orderData.id)
+      console.log('📊 Przed dodaniem - currentReviewers:', orderData.currentReviewers)
+      
       const reviewData = {
         orderId: orderData.id,
         movieTitle: orderData.movieTitle,
         movieImage: orderData.movieImage,
         authorName: user.username,
-        rating: formData.rating, // Już w skali 1-100
+        rating: formData.rating,
         reviewText: formData.reviewText.trim(),
         avatar: user.avatar || getRandomAvatar(),
         paymentMethods: {
@@ -150,13 +173,21 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
         }
       }
       
+      // Dodaj recenzję
+      console.log('📝 Dodawanie recenzji...')
       addReview(reviewData)
       
+      // Zaktualizuj zlecenie
       const newCurrentReviewers = (orderData.currentReviewers || 0) + 1
+      console.log('🔄 Aktualizacja zlecenia - nowy currentReviewers:', newCurrentReviewers)
+      
       updateOrder(orderData.id, {
         currentReviewers: newCurrentReviewers
       })
       
+      console.log('✅ Operacja zakończona pomyślnie')
+      
+      // Reset formularza
       setFormData({
         authorName: user.username,
         rating: 50,
@@ -170,7 +201,7 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
       onClose()
       
     } catch (error) {
-      console.error('Error adding review:', error)
+      console.error('❌ Error adding review:', error)
       alert('Wystąpił błąd przy dodawaniu recenzji')
     } finally {
       setIsSubmitting(false)
@@ -285,7 +316,7 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
                   {errors.authorName && <span className="error-text">{errors.authorName}</span>}
                 </div>
 
-                {/* ZMIENIONO: Rating 1-100 z sliderem */}
+                {/* Rating 1-100 z gwiazdkami */}
                 <div className="form-group-full">
                   <label htmlFor="rating">Twoja ocena</label>
                   <div className="rating-input-100">
@@ -308,8 +339,8 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
                       </div>
                     </div>
                     <div className="rating-display">
-                      <div className="rating-stars">
-                        {renderStars(formData.rating)}
+                      <div className="rating-stars-clean">
+                        {renderStarsClean(formData.rating)}
                       </div>
                       <div className="rating-info">
                         <span className="rating-number">{formData.rating}/100</span>
@@ -338,7 +369,7 @@ const MovieReviewModal = ({ isOpen, onClose, orderData }) => {
                   {errors.reviewText && <span className="error-text">{errors.reviewText}</span>}
                 </div>
 
-                {/* Sekcja płatności - bez zmian */}
+                {/* Sekcja płatności */}
                 <div className="payment-section">
                   <h4>💰 Dane do wypłaty ({orderData.price} PLN)</h4>
                   <p className="payment-hint">Podaj co najmniej jedną metodę płatności do otrzymania wynagrodzenia</p>
