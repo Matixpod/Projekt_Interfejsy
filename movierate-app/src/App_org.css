@@ -4,6 +4,14 @@
   box-sizing: border-box;
 }
 
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
 .app {
   min-height: 100vh;
   width: 100%;
@@ -1380,6 +1388,86 @@
 }
 
 /* TV Shows Page Styles */
+.tv-header {
+  background-color: #f8f8f8;
+  padding: 20px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tv-header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.tv-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tv-search-input {
+  width: 200px;
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+}
+
+.tv-logo {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ff6b35;
+  text-decoration: none;
+}
+
+.tv-header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.tv-login-btn {
+  background-color: transparent;
+  border: none;
+  color: #333;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tv-donate-btn {
+  background-color: #ff6b35;
+  border: none;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.tv-donate-btn:hover {
+  background-color: #e85a2b;
+}
+
+.tv-nav {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+
+.tv-nav-link {
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+
+.tv-nav-link:hover {
+  color: #ff6b35;
+}
 
 /* TV Shows Grid */
 .tv-shows-container {
@@ -1641,6 +1729,18 @@
 }
 
 /* Movies Footer */
+.movies-footer {
+  text-align: center;
+  padding: 40px 0;
+  margin-top: 60px;
+}
+
+.footer-logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff6b35;
+  text-decoration: none;
+}
 
 .movie-genre {
   font-size: 11px;
@@ -2063,6 +2163,10 @@ input:checked + .toggle-slider:before {
 }
 
 /* Tło całej aplikacji */
+.dark-mode body {
+  background-color: #121212;
+  color: #e0e0e0;
+}
 
 .dark-mode .app {
   background-color: #121212;
@@ -2298,6 +2402,13 @@ input:checked + .toggle-slider:before {
 }
 
 /* Footer */
+.dark-mode .movies-footer {
+  border-top-color: #333;
+}
+
+.dark-mode .footer-logo {
+  color: #ff6b35;
+}
 
 /* Loading states */
 .dark-mode .detail-loading {
@@ -2305,7 +2416,8 @@ input:checked + .toggle-slider:before {
 }
 
 /* Placeholder images */
-.dark-mode .movie-placeholder {
+.dark-mode .movie-placeholder,
+.dark-mode .placeholder-image {
   background-color: #2a2a2a;
   color: #666;
 }
@@ -2451,6 +2563,20 @@ input:checked + .toggle-slider:before {
 }
 
 /* Skip to Content Link */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #ff6b35;
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
 
 /* Font Size Variations - ROZSZERZONE */
 [data-font-size="small"] {
@@ -3034,6 +3160,13 @@ input:checked + .toggle-slider:before {
   font-family: inherit;
 }
 
+.form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 30px;
+}
+
 .btn-cancel {
   padding: 12px 30px;
   background-color: transparent;
@@ -3069,6 +3202,45 @@ input:checked + .toggle-slider:before {
 .btn-submit:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+.order-info-box {
+  margin-top: 40px;
+  padding: 25px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #ff6b35;
+}
+
+.order-info-box h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.order-info-box ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.order-info-box li {
+  position: relative;
+  padding-left: 25px;
+  margin-bottom: 10px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.order-info-box li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #ff6b35;
+  font-weight: bold;
 }
 
 /* Dark mode dla Order Review */
@@ -3121,6 +3293,19 @@ input:checked + .toggle-slider:before {
   color: #e0e0e0;
 }
 
+.dark-mode .order-info-box {
+  background-color: #2a2a2a;
+  border-left-color: #ff6b35;
+}
+
+.dark-mode .order-info-box h3 {
+  color: #e0e0e0;
+}
+
+.dark-mode .order-info-box li {
+  color: #aaa;
+}
+
 /* Responsywność */
 @media (max-width: 768px) {
   .order-review-container {
@@ -3137,6 +3322,10 @@ input:checked + .toggle-slider:before {
   
   .form-row {
     grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
   }
   
   .btn-cancel,
@@ -3429,6 +3618,18 @@ input:checked + .toggle-slider:before {
 .detail-row.urgent {
   color: #f44336;
   font-weight: 600;
+}
+
+.spots-available {
+  color: #4caf50;
+}
+
+.spots-almost-full {
+  color: #ff9800;
+}
+
+.spots-full {
+  color: #f44336;
 }
 
 .marketplace-card-description {
@@ -3964,6 +4165,30 @@ input:checked + .toggle-slider:before {
 
 .form-group-inline input.error {
   border-color: #e74c3c;
+}
+
+.rating-input-horizontal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-star {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: transform 0.2s ease;
+}
+
+.rating-star:hover {
+  transform: scale(1.1);
+}
+
+.rating-label {
+  font-size: 14px;
+  color: #666;
+  margin-left: 10px;
 }
 
 .form-group-full {
@@ -4708,6 +4933,9 @@ input:checked + .toggle-slider:before {
 }
 
 /* Hide movie title w review card na DetailPage */
+.community-reviews[data-single-movie="true"] .movie-title-small {
+  display: none;
+}
 
 /* Order Details Modal */
 .order-modal-overlay {
@@ -4809,6 +5037,18 @@ input:checked + .toggle-slider:before {
   background: linear-gradient(45deg, #ff6b35, #f7931e);
   font-size: 16px;
   font-weight: 700;
+}
+
+.spots-badge.spots-available {
+  background: linear-gradient(45deg, #28a745, #20c997);
+}
+
+.spots-badge.spots-almost-full {
+  background: linear-gradient(45deg, #ffc107, #fd7e14);
+}
+
+.spots-badge.spots-full {
+  background: linear-gradient(45deg, #dc3545, #c82333);
 }
 
 .deadline-badge.urgent {
@@ -4952,6 +5192,18 @@ input:checked + .toggle-slider:before {
 }
 
 .status-value.urgent {
+  color: #dc3545;
+}
+
+.status-value.spots-available {
+  color: #28a745;
+}
+
+.status-value.spots-almost-full {
+  color: #ffc107;
+}
+
+.status-value.spots-full {
   color: #dc3545;
 }
 
@@ -5752,6 +6004,28 @@ input:checked + .toggle-slider:before {
   }
 }
 /* Order Almost Full State - NOWE */
+.marketplace-card.order-almost-full {
+  position: relative;
+  border: 2px solid #dc3545;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.order-almost-full-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(220, 53, 69, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc3545;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 8px 8px 0 0;
+  backdrop-filter: blur(1px);
+}
 
 /* USUNIĘTO: .order-full styles - nie potrzebujemy ich już */
 
@@ -5785,8 +6059,23 @@ input:checked + .toggle-slider:before {
 }
 
 /* Hidden orders indicator */
+.hidden-orders {
+  color: #dc3545;
+  font-weight: 600;
+  font-size: 12px;
+}
 
 /* Updated spots colors - bardziej wyraziste */
+.spots-available {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.spots-almost-full {
+  color: #dc3545;
+  font-weight: 700;
+  animation: pulse 2s infinite;
+}
 
 /* Pulse animation */
 @keyframes pulse {
@@ -5799,15 +6088,51 @@ input:checked + .toggle-slider:before {
 }
 
 /* Dark mode dla nowych stylów */
+.dark-mode .order-almost-full-overlay {
+  background: rgba(220, 53, 69, 0.25);
+  color: #ff6b6b;
+}
+
+.dark-mode .marketplace-card.order-almost-full {
+  border-color: #ff6b6b;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.dark-mode .hidden-orders {
+  color: #ff6b6b;
+}
 
 /* High contrast */
+.high-contrast .marketplace-card.order-almost-full {
+  border-color: #000;
+  background: #fff0f0;
+}
+
+.high-contrast .order-almost-full-overlay {
+  background: rgba(0, 0, 0, 0.1);
+  color: #000;
+}
 
 /* Reduce motion */
-.reduce-motion .btn-review.urgent {
+.reduce-motion .btn-review.urgent,
+.reduce-motion .spots-almost-full {
   animation: none !important;
 }
 
+.reduce-motion .order-almost-full-overlay {
+  backdrop-filter: none;
+}
+
 /* Responsive */
+@media (max-width: 768px) {
+  .order-almost-full-overlay {
+    font-size: 14px;
+  }
+  
+  .marketplace-card.order-almost-full {
+    border-width: 1px;
+  }
+}
 /* Rating Input 1-100 */
 .rating-input-100 {
   background: #f8f9fa;
@@ -5863,6 +6188,25 @@ input:checked + .toggle-slider:before {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.star-container {
+  position: relative;
+  display: inline-block;
+}
+
+.star-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .rating-info {
