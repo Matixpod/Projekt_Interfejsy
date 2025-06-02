@@ -3,11 +3,9 @@ import React from 'react'
 const AboutSection = () => {
   return (
     <section className="about-section">
-      <h2 className="section-title">About Us</h2>
+      <h2 className="section-title">O nas</h2>
       <p className="about-text">
-        We're passionate about bringing you the best movie and series reviews. Our platform helps 
-        you discover amazing content and share your thoughts with a community of fellow 
-        entertainment enthusiasts.
+Kochamy kino i seriale tak samo jak Ty! Nasza misja to dostarczanie rzetelnych recenzji, które pomogą Ci znaleźć perełki filmowe i serialowe. Dołącz do naszej społeczności i podziel się swoimi wrażeniami z innymi fanami dobrej rozrywki.
       </p>
     </section>
   )

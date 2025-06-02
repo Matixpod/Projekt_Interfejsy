@@ -10,7 +10,7 @@ const CategoriesSection = () => {
 
   return (
     <section className="categories-section">
-      <h2 className="section-title">Categories</h2>
+      <h2 className="section-title">Kategorie</h2>
       
       <div className="categories-grid">
         {categories.map((category, index) => (

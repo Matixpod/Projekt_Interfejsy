@@ -63,14 +63,14 @@ const Header = () => {
               className="nav-link"
               onClick={handleLinkClick}
             >
-              TV Shows
+              Seriale
             </Link>
             <Link 
               to="/movies" 
               className="nav-link"
               onClick={handleLinkClick}
             >
-              Movies
+              Filmy
             </Link>
             {isAuthenticated && (
               <Link 
@@ -78,7 +78,7 @@ const Header = () => {
                 className="nav-link"
                 onClick={handleLinkClick}
               >
-                Review Marketplace
+                Market Recenzji
               </Link>
             )}
             {isAuthenticated && (
@@ -87,7 +87,7 @@ const Header = () => {
                 className="nav-link"
                 onClick={handleLinkClick}
               >
-                Order Review
+                Zamów Recenzję
               </Link>
             )}
 
