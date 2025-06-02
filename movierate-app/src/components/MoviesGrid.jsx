@@ -12,7 +12,7 @@ const MoviesGrid = () => {
   const [selectedGenre, setSelectedGenre] = useState('all')
   const [sortBy, setSortBy] = useState('popularity')
   
-  // DODANO: Load More functionality
+  //  Load More functionality
   const [visibleCount, setVisibleCount] = useState(12)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
@@ -65,12 +65,12 @@ const MoviesGrid = () => {
     return filtered
   }, [movies, selectedGenre, sortBy])
 
-  // DODANO: Reset visible count when filters change
+  //  Reset visible count when filters change
   React.useEffect(() => {
     setVisibleCount(12)
   }, [selectedGenre, sortBy])
 
-  // DODANO: Load More handler
+  //  Load More handler
   const handleLoadMore = () => {
     setIsLoadingMore(true)
     
@@ -81,7 +81,7 @@ const MoviesGrid = () => {
     }, 800) // Krótka przerwa dla lepszego UX
   }
 
-  // DODANO: Calculate visible movies and remaining count
+  //  Calculate visible movies and remaining count
   const visibleMovies = filteredAndSortedMovies.slice(0, visibleCount)
   const remainingCount = filteredAndSortedMovies.length - visibleCount
   const hasMore = remainingCount > 0
@@ -187,7 +187,7 @@ const MoviesGrid = () => {
         </div>
       )}
 
-      {/* DODANO: End message when all loaded */}
+      {/*  End message when all loaded */}
       {!hasMore && filteredAndSortedMovies.length > 12 && (
         <div className="load-more-container">
           <div className="all-loaded-message">

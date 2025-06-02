@@ -123,7 +123,7 @@ const ReviewMarketplace = () => {
         </div>
       ) : (
         <>
-          {/* ZAKTUALIZOWANE: Statistics */}
+          {/*  Statistics */}
           <div className="marketplace-stats">
             <div className="stat-card">
               <span className="stat-number">{stats.total}</span>

@@ -12,7 +12,7 @@ const TVShowsGrid = () => {
   const [selectedGenre, setSelectedGenre] = useState('all')
   const [sortBy, setSortBy] = useState('popularity')
   
-  // DODANO: Load More functionality
+  //  Load More functionality
   const [visibleCount, setVisibleCount] = useState(12)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
@@ -61,12 +61,12 @@ const TVShowsGrid = () => {
     return filtered
   }, [tvShows, selectedGenre, sortBy])
 
-  // DODANO: Reset visible count when filters change
+  //  Reset visible count when filters change
   React.useEffect(() => {
     setVisibleCount(12)
   }, [selectedGenre, sortBy])
 
-  // DODANO: Load More handler
+  //  Load More handler
   const handleLoadMore = () => {
     setIsLoadingMore(true)
     
@@ -76,7 +76,7 @@ const TVShowsGrid = () => {
     }, 800)
   }
 
-  // DODANO: Calculate visible shows and remaining count
+  //  Calculate visible shows and remaining count
   const visibleShows = filteredAndSortedShows.slice(0, visibleCount)
   const remainingCount = filteredAndSortedShows.length - visibleCount
   const hasMore = remainingCount > 0
@@ -195,7 +195,7 @@ const TVShowsGrid = () => {
         </div>
       )}
 
-      {/* DODANO: End message when all loaded */}
+      {/*  End message when all loaded */}
       {!hasMore && filteredAndSortedShows.length > 12 && (
         <div className="load-more-container">
           <div className="all-loaded-message">

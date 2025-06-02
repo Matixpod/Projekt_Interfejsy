@@ -196,7 +196,7 @@ const CommunityReviews = ({ movieId = null, movieTitle = null }) => {
                         </div>
                       </div>
                     </div>
-                    {/* ZMIENIONO: Nowy system gwiazdek dla małych kart */}
+                    {/*  */}
                     <div className="review-rating">
                       {renderStarsFromRating100(review.rating, 16)}
                       <div className="rating-info-small">

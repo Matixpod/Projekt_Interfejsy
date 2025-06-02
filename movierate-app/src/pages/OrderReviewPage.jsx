@@ -2,13 +2,11 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DollarSign, Film, User, AlertCircle, Image as ImageIcon } from 'lucide-react'
 import { useOrdersContext } from '../context/OrdersContext'
-import { useAuth } from '../context/AuthContext' // DODANO
-
+import { useAuth } from '../context/AuthContext' // 
 const OrderReviewPage = () => {
   const navigate = useNavigate()
   const { addOrder } = useOrdersContext()
-  const { user } = useAuth() // DODANO
-
+  const { user } = useAuth() // 
   const [formData, setFormData] = useState({
     movieTitle: '',
     movieType: 'movie',
@@ -18,7 +16,7 @@ const OrderReviewPage = () => {
     description: '',
     requirements: '',
     maxReviewers: '1',
-    authorName: user?.username || '', // DODANO: Auto-fill z user context
+    authorName: user?.username || '', //  Auto-fill z user context
     authorEmail: '' // USUNIĘTO: paymentMethod
   })
 
@@ -295,7 +293,7 @@ const OrderReviewPage = () => {
               </div>
             </div>
             
-            {/* DODANO: Informacja o płatnościach */}
+            {/*  Informacja o płatnościach */}
             <div className="payment-info-box">
               <h4>💰 Informacja o płatnościach</h4>
               <p>

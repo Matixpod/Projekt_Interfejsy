@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { Star, Clock, Calendar, Users, ArrowLeft } from 'lucide-react'
 import useMoviesData from '../hooks/useMoviesData'
 import useTVShowsData from '../hooks/useTVShowsData'
-import CommunityReviews from '../components/CommunityReviews' // DODANO
+import CommunityReviews from '../components/CommunityReviews' // 
 
 const DetailPage = ({ type }) => {
   const { id } = useParams()
@@ -127,14 +127,10 @@ const DetailPage = ({ type }) => {
             </div>
           )}
 
-          <div className="detail-actions">
-            <button className="btn-watch">Oglądaj teraz</button>
-            <button className="btn-trailer">Zwiastun</button>
-          </div>
         </div>
       </div>
 
-      {/* DODANO SEKCJĘ RECENZJI */}
+      {/*  SEKCJĘ RECENZJI */}
       <CommunityReviews 
         movieId={item.id} 
         movieTitle={item.title}

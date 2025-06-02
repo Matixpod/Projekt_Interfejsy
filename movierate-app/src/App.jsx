@@ -3,7 +3,7 @@ import './App.css'
 import { SettingsProvider } from './context/SettingsContext'
 import { OrdersProvider } from './context/OrdersContext'
 import { ReviewsProvider } from './context/ReviewsContext'
-import { AuthProvider } from './context/AuthContext' // DODANO
+import { AuthProvider } from './context/AuthContext' // 
 import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import TVShowsPage from './pages/TVShowsPage'
@@ -11,12 +11,12 @@ import MoviesPage from './pages/MoviesPage'
 import DetailPage from './pages/DetailPage'
 import OrderReviewPage from './pages/OrderReviewPage'
 import ReviewMarketplace from './pages/ReviewMarketplace'
-import ProtectedRoute from './components/ProtectedRoute' // DODANO
+import ProtectedRoute from './components/ProtectedRoute' // 
 
 function App() {
   return (
     <SettingsProvider>
-      <AuthProvider> {/* DODANO - AuthProvider musi być wewnątrz SettingsProvider */}
+      <AuthProvider> {/*  - AuthProvider musi być wewnątrz SettingsProvider */}
         <OrdersProvider>
           <ReviewsProvider>
             <Router>

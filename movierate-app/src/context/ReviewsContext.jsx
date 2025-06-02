@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react'
 import useReviews from '../hooks/UseReviews'
-import { useOrdersContext } from './OrdersContext' // DODANO
+import { useOrdersContext } from './OrdersContext' // 
 
 const ReviewsContext = createContext()
 
@@ -13,10 +13,10 @@ export const useReviewsContext = () => {
 }
 
 export const ReviewsProvider = ({ children }) => {
-  const { updateOrder } = useOrdersContext() // DODANO
+  const { updateOrder } = useOrdersContext() // 
   const reviewsData = useReviews()
 
-  // DODANO: Wrapper dla addReview z automatyczną aktualizacją zlecenia
+  // : Wrapper dla addReview z automatyczną aktualizacją zlecenia
   const addReviewWithOrderUpdate = (newReview) => {
     const updateOrderCallback = (orderId) => {
       // Znajdź zlecenie i zwiększ currentReviewers
@@ -29,7 +29,7 @@ export const ReviewsProvider = ({ children }) => {
     return reviewsData.addReview(newReview, updateOrderCallback)
   }
 
-  // DODANO: Rozszerzone API z nową funkcją
+  // : Rozszerzone API z nową funkcją
   const extendedReviewsData = {
     ...reviewsData,
     addReview: addReviewWithOrderUpdate // Zastąp oryginalną funkcję
