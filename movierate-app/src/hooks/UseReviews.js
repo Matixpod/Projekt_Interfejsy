@@ -49,7 +49,7 @@ const useReviews = () => {
     setReviews(prev => 
       prev.map(review => 
         review.id === reviewId 
-          ? { ...review, likes: review.likes + 1 }
+          ? { ...review, likes: review.likes }
           : review
       )
     )
